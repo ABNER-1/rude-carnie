@@ -42,7 +42,7 @@ VGG Dataset:
   - Labeled dataset, so we can infer gender from the names (using
       gender_guesser). Downloaded Images of celebrities.
   - Passing in cropped images
-  - Performs really well (>95%) on a randomly chosen 100 image subset I ran it on. 
+  - Performs really well (~90%) on a randomly chosen 100 image subset I ran it on. 
   - FIXME: Add numbers on a full run / or at least 1000 faces run.
 
   - Possible reasons:
@@ -77,7 +77,8 @@ Friends Videos:
 Fox Obama Video - 10 min shortened clip:
   
   - See the esper .html page file again. 
-  - Seems much better than Friends video in general. 
+  - Seems much better than Friends video in general, although not without
+  mistakes.
     - Bigger, more frontal images?
   - In general, this may be good enough for us I guess 
 
