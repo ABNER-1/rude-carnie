@@ -1,7 +1,7 @@
 Rude-Carnie:
   - Two models: 
-    a. Based on the Levi-Hassner paper.
-    b. Plugging in the same features into Inception which has been
+    - Based on the Levi-Hassner paper.
+    - Plugging in the same features into Inception which has been
     trained/finetuned for 2 classes on the Adience dataset (similar to LFW, but
     harder images / more blurry, angles etc.)
 
@@ -12,9 +12,9 @@ Rude-Carnie:
     classification tasks etc.
 
   - Features:
-    a. Single look case: Just resize the image, and push in all values into the
+    - Single look case: Just resize the image, and push in all values into the
     classifier.
-    b. Multiple looks case: Basically takes a bunch of crops across the image
+    - Multiple looks case: Basically takes a bunch of crops across the image
     (top left, top right etc) and does some manipulations, and then passes all
     of these through the classifier, and averages results.
   

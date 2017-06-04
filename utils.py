@@ -64,14 +64,16 @@ def make_batch(filename, coder, multicrop):
     width: integer, image width in pixels.
     """
     # Read the image file.
-    with tf.gfile.FastGFile(filename, 'rb') as f:
-        image_data = f.read()
-
-    # Convert any PNG to JPEG's for consistency.
-    if _is_png(filename):
-        print('Converting PNG to JPEG for %s' % filename)
-        image_data = coder.png_to_jpeg(image_data)
+    # with tf.gfile.FastGFile(filename, 'rb') as f:
+        # image_data = f.read()
     
+    # Convert any PNG to JPEG's for consistency.
+    # if _is_png(filename):
+        # print('Converting PNG to JPEG for %s' % filename)
+        # image_data = coder.png_to_jpeg(image_data)
+    
+    print('in make batch!')
+    image_data = filename
     image = coder.decode_jpeg(image_data)
 
     crops = []

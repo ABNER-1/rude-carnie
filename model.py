@@ -28,8 +28,8 @@ def select_model(name):
 
 
 def get_checkpoint(checkpoint_path, requested_step=None, basename='checkpoint'):
+    print("checkpoint path = ", checkpoint_path)
     if requested_step is not None:
-
         model_checkpoint_path = '%s/%s-%s' % (checkpoint_path, basename, requested_step)
         if os.path.exists(model_checkpoint_path) is None:
             print('No checkpoint file found at [%s]' % checkpoint_path)
@@ -39,6 +39,9 @@ def get_checkpoint(checkpoint_path, requested_step=None, basename='checkpoint'):
         return model_checkpoint_path, requested_step
 
     ckpt = tf.train.get_checkpoint_state(checkpoint_path)
+    if ckpt is None:
+        print('ckpt is none')
+    
     if ckpt and ckpt.model_checkpoint_path:
         # Restore checkpoint as described in top of this program
         print(ckpt.model_checkpoint_path)

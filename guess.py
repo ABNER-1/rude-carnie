@@ -5,15 +5,26 @@ from __future__ import print_function
 from datetime import datetime
 import math
 import time
-from data import inputs
+# from data import inputs
 import numpy as np
 import tensorflow as tf
 from model import select_model, get_checkpoint
 from utils import ImageCoder, make_batch
-from detect import face_detection_model
+# from detect import face_detection_model
 import os
 import json
 import csv
+import random
+import cv2
+
+def load_imgs(img_directory):        
+    imgs = []
+    for root, subdirs, files in os.walk(img_directory):
+        for file in files:
+            if os.path.splitext(file)[1].lower() in ('.jpg', '.jpeg'):
+                 imgs.append(os.path.join(root, file))
+    
+    return imgs
 
 RESIZE_FINAL = 227
 GENDER_LIST =['M','F']
@@ -43,7 +54,7 @@ tf.app.flags.DEFINE_string('model_type', 'default',
 
 tf.app.flags.DEFINE_string('requested_step', '', 'Within the model directory, a requested step to restore e.g., 9000')
 
-tf.app.flags.DEFINE_boolean('single_look', False, 'single look at the image or multiple crops')
+tf.app.flags.DEFINE_boolean('single_look', True, 'single look at the image or multiple crops')
 
 tf.app.flags.DEFINE_string('face_detection_model', '', 'Do frontal face detection with model specified')
 
@@ -67,8 +78,10 @@ def resolve_file(fname):
 
 def classify(sess, label_list, softmax_output, coder, images, image_file):
 
-    print('Running file %s' % image_file)
+    # print('Running file %s' % image_file)
+    print('in classify')
     image_batch = make_batch(image_file, coder, not FLAGS.single_look)
+
     batch_results = sess.run(softmax_output, feed_dict={images:image_batch.eval()})
     output = batch_results[0]
     batch_sz = batch_results.shape[0]
@@ -78,13 +91,12 @@ def classify(sess, label_list, softmax_output, coder, images, image_file):
     output /= batch_sz
     best = np.argmax(output)
     best_choice = (label_list[best], output[best])
-    print('Guess @ 1 %s, prob = %.2f' % best_choice)
+    # print('Guess @ 1 %s, prob = %.2f' % best_choice)
     
     nlabels = len(label_list)
     if nlabels > 2:
         output[best] = 0
         second_best = np.argmax(output)
-
         print('Guess @ 2 %s, prob = %.2f' % (label_list[second_best], output[second_best]))
     return best_choice
          
@@ -98,9 +110,14 @@ def batchlist(srcfile):
         return [row[0] for row in reader]
 
 def main(argv=None):  # pylint: disable=unused-argument
-
-    files = []
     
+    # FIXME: Test by putting in multiple files in here.
+    # files = []
+    files =load_imgs('/Users/parimarjann/projects/face_recognizer/data/vgg_face_dataset/dataset_images')
+    random.seed(1234)
+    files = random.sample(files, 100)
+    print('single look: ', FLAGS.single_look)
+
     if FLAGS.face_detection_model:
         print('Using face detector (%s) %s' % (FLAGS.face_detection_type, FLAGS.face_detection_model))
         face_detect = face_detection_model(FLAGS.face_detection_type, FLAGS.face_detection_model)
@@ -136,7 +153,6 @@ def main(argv=None):  # pylint: disable=unused-argument
             softmax_output = tf.nn.softmax(logits)
 
             coder = ImageCoder()
-
             # Support a batch mode if no face detection model
             if len(files) == 0:
                 files.append(FLAGS.filename)
@@ -155,14 +171,22 @@ def main(argv=None):  # pylint: disable=unused-argument
 
             for f in files:
                 image_file = resolve_file(f)
-            
-                if image_file is None: continue
+                image_data = cv2.imread(image_file)
+                image_data = cv2.cvtColor(image_data, cv2.COLOR_RGB2BGR)
+                image_data = cv2.imencode('.jpeg', image_data)[1].tostring()
+
+                if image_file is None: 
+                    continue
 
                 try:
-                    best_choice = classify(sess, label_list, softmax_output, coder, images, image_file)
-                    if writer is not None:
-                        writer.writerow((f, best_choice[0], '%.2f' % best_choice[1]))
+                    best_choice = classify(sess, label_list, softmax_output,
+                            coder, images, image_data)
+                    # if writer is not None:
+                        # writer.writerow((f, best_choice[0], '%.2f' % best_choice[1]))
+                    print(f)
+                    print(best_choice)
                 except Exception as e:
+                    print('exception!')
                     print(e)
                     print('Failed to run image %s ' % image_file)
 
