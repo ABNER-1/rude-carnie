@@ -13,7 +13,7 @@ def load_imgs(img_directory):
 
 rc = RudeCarnie()
 
-data_dir ='/Users/parimarjann/projects/face_recognizer/data/friends/friends1_faces'
+data_dir ='/usr/src/app/assets/thumbnails'
 files = load_imgs(data_dir)
 files = random.sample(files, 30)
 

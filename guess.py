@@ -79,9 +79,8 @@ def resolve_file(fname):
 def classify(sess, label_list, softmax_output, coder, images, image_file):
 
     # print('Running file %s' % image_file)
-    print('in classify')
     image_batch = make_batch(image_file, coder, not FLAGS.single_look)
-
+    print(FLAGS.single_look)
     batch_results = sess.run(softmax_output, feed_dict={images:image_batch.eval()})
     output = batch_results[0]
     batch_sz = batch_results.shape[0]
