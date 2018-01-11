@@ -19,19 +19,24 @@ import random
 from guess import resolve_file, classify, batchlist, FLAGS
 
 RESIZE_FINAL = 227
-GENDER_LIST =['M','F']
-AGE_LIST = ['(0, 2)','(4, 6)','(8, 12)','(15, 20)','(25, 32)','(38, 43)','(48, 53)','(60, 100)']
+GENDER_LIST = ['M', 'F']
+AGE_LIST = [
+    '(0, 2)', '(4, 6)', '(8, 12)', '(15, 20)', '(25, 32)', '(38, 43)', '(48, 53)', '(60, 100)'
+]
+
 
 class RudeCarnie():
     def decode(self, raw_bytes):
-        dec =  tf.image.decode_jpeg(raw_bytes, channels=3)
+        dec = tf.image.decode_jpeg(raw_bytes, channels=3)
         res = tf.image.resize_images(dec, (RESIZE_FINAL, RESIZE_FINAL))
         stand = standardize_image(res)
         return stand
 
-
-    def __init__(self, model_dir='/usr/src/app/deps/rude-carnie/inception_gender_checkpoint', model_type='inception',class_type='gender'):
-        ''' 
+    def __init__(self,
+                 model_dir='/usr/src/app/deps/rude-carnie/inception_gender_checkpoint',
+                 model_type='inception',
+                 class_type='gender'):
+        '''
         Just a wrapper around guess.py.
         '''
         self.model_dir = model_dir
@@ -45,51 +50,50 @@ class RudeCarnie():
         standardize = tf.map_fn(self.decode, self.images, dtype=tf.float32)
         logits = model_fn(nlabels, standardize, 1, False)
         init = tf.global_variables_initializer()
-        
+
         requested_step = FLAGS.requested_step if FLAGS.requested_step else None
-        
+
         checkpoint_path = '%s' % (self.model_dir)
-        model_checkpoint_path, global_step = get_checkpoint(checkpoint_path, requested_step, FLAGS.checkpoint)
-        
+        model_checkpoint_path, global_step = get_checkpoint(checkpoint_path, requested_step,
+                                                            FLAGS.checkpoint)
+
         saver = tf.train.Saver()
         saver.restore(self.sess, model_checkpoint_path)
-                    
+
         self.softmax_output = tf.nn.softmax(logits)
 
-        self.coder = ImageCoder() 
+        self.coder = ImageCoder()
 
     def get_gender(self, files):
         '''
         This is functionally equivalent to the guess.py file in the original rude carnie directory.
         '''
-        with self.sess.as_default():    
+        with self.sess.as_default():
             best_choices = []
             for f in files:
                 image_file = resolve_file(f)
                 if image_file is None: continue
                 try:
-                    best_choices.append(classify(self.sess, self.label_list,
-                        self.softmax_output, self.coder, self.images, image_file))
+                    best_choices.append(
+                        classify(self.sess, self.label_list, self.softmax_output, self.coder,
+                                 self.images, image_file))
                 except Exception as e:
                     best_choices.append(None)
                     continue
 
             return best_choices
 
-    def get_gender_batch(self, files):
+    def get_gender_batch(self, imgs):
         batch_size = 100
         results = []
         with self.sess.as_default():
-#            tf.get_default_graph().finalize()
-            for i in range(0, len(files), batch_size):
-                end_index = min(i+batch_size, len(files))
-                batch_files = files[i:end_index]
-                batch_data = []
-                for filename in batch_files:
-                    with open(filename, 'r') as f:
-                        image_data = f.read()
-                    batch_data.append( image_data)
-                batch_results = self.sess.run(self.softmax_output, feed_dict={self.images:batch_data})
+            for i in range(0, len(imgs), batch_size):
+                end_index = min(i + batch_size, len(imgs))
+                batch_data = imgs[i:end_index]
+                batch_results = self.sess.run(
+                    self.softmax_output, feed_dict={
+                        self.images: batch_data
+                    })
                 for result in batch_results:
                     best = np.argmax(result)
                     best_choice = (self.label_list[best], result[best])
