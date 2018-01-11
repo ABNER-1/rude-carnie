@@ -100,5 +100,4 @@ class RudeCarnie():
                     best = np.argmax(result)
                     best_choice = (self.label_list[best], result[best])
                     results.append(best_choice)
-                print(end_index)
         return results
