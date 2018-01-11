@@ -85,7 +85,7 @@ class RudeCarnie():
             return best_choices
 
     def get_gender_batch(self, imgs):
-        imgs = [cv2.imencode('.jpg', im) for im in imgs]
+        imgs = [cv2.imencode('.jpg', im)[1] for im in imgs]
         batch_size = 100
         results = []
         with self.sess.as_default():
