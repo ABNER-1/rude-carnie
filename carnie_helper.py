@@ -17,6 +17,7 @@ import json
 import csv
 import random
 from guess import resolve_file, classify, batchlist, FLAGS
+import cv2
 
 RESIZE_FINAL = 227
 GENDER_LIST = ['M', 'F']
