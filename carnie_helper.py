@@ -52,11 +52,11 @@ class RudeCarnie():
         logits = model_fn(nlabels, standardize, 1, False)
         init = tf.global_variables_initializer()
 
-        requested_step = FLAGS.requested_step if FLAGS.requested_step else None
+        requested_step = None #FLAGS.requested_step if FLAGS.requested_step else None
 
         checkpoint_path = '%s' % (self.model_dir)
-        model_checkpoint_path, global_step = get_checkpoint(checkpoint_path, requested_step,
-                                                            FLAGS.checkpoint)
+        model_checkpoint_path, global_step = get_checkpoint(checkpoint_path, requested_step, None)
+                                                            #FLAGS.checkpoint)
 
         saver = tf.train.Saver()
         saver.restore(self.sess, model_checkpoint_path)
