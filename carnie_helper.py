@@ -43,27 +43,30 @@ class RudeCarnie():
         self.model_dir = model_dir
         self.model_type = model_type
         self.class_type = class_type
-        self.sess = tf.Session()
-        model_fn = select_model(self.model_type)
-        self.label_list = AGE_LIST if self.class_type == 'age' else GENDER_LIST
-        nlabels = len(self.label_list)
-        self.images = tf.placeholder(tf.string, [None])
-        standardize = tf.map_fn(self.decode, self.images, dtype=tf.float32)
-        logits = model_fn(nlabels, standardize, 1, False)
-        init = tf.global_variables_initializer()
 
-        requested_step = None #FLAGS.requested_step if FLAGS.requested_step else None
+        tf_config = tf.ConfigProto()
+        self.tf_config = tf_config
+        self.graph = tf.Graph()
+        self.sess = tf.Session(config=self.tf_config, graph=self.graph)
+        with self.graph.as_default():
+            with self.sess.as_default():
+                model_fn = select_model(self.model_type)
+                self.label_list = AGE_LIST if self.class_type == 'age' else GENDER_LIST
+                nlabels = len(self.label_list)
+                self.images = tf.placeholder(tf.string, [None])
+                standardize = tf.map_fn(self.decode, self.images, dtype=tf.float32)
+                logits = model_fn(nlabels, standardize, 1, False)
 
-        checkpoint_path = '%s' % (self.model_dir)
-        model_checkpoint_path, global_step = get_checkpoint(checkpoint_path, requested_step, None)
-                                                            #FLAGS.checkpoint)
+                # init = tf.global_variables_initializer()
+                requested_step = None  # FLAGS.requested_step if FLAGS.requested_step else None
 
-        saver = tf.train.Saver()
-        saver.restore(self.sess, model_checkpoint_path)
-
-        self.softmax_output = tf.nn.softmax(logits)
-
-        self.coder = ImageCoder()
+                checkpoint_path = '%s' % (self.model_dir)
+                model_checkpoint_path, global_step = get_checkpoint(checkpoint_path, requested_step, None)
+                # FLAGS.checkpoint)
+                saver = tf.train.Saver()
+                saver.restore(self.sess, model_checkpoint_path)
+                self.softmax_output = tf.nn.softmax(logits)
+                self.coder = ImageCoder()
 
     def get_gender(self, files):
         '''
